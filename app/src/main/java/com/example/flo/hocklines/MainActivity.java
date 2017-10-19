@@ -25,6 +25,7 @@ import com.example.flo.hocklines.hocklines_timer.events.IncrementWorkEvent;
 import com.example.flo.hocklines.hocklines_timer.events.SleepTimerEvent;
 import com.example.flo.hocklines.hocklines_timer.events.StopSeanceEvent;
 import com.example.flo.hocklines.hocklines_timer.events.WorkTimerEvent;
+import com.example.flo.hocklines.licences.fragment.LicencesFragment;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -33,9 +34,11 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     public static final int FRAGMENT_TIMER = 0;
-    private static final int NO_FRAGMENT = -1;
+    public static final int FRAGMENT_LICENCES = 1;
+    public static final int NO_FRAGMENT = -1;
 
     private HocklinesTimerFragment hocklinesTimerFragment;
+    private LicencesFragment licencesFragment;
     private NavigationView navigationView;
     private int currentFragment;
 
@@ -61,6 +64,7 @@ public class MainActivity extends AppCompatActivity
 
         EventBus.getDefault().register(this);
         hocklinesTimerFragment = new HocklinesTimerFragment();
+        licencesFragment = new LicencesFragment();
         currentFragment = NO_FRAGMENT;
         displayFragment(currentFragment);
 
@@ -98,6 +102,15 @@ public class MainActivity extends AppCompatActivity
                         .replace(R.id.container, hocklinesTimerFragment.newInstance(3))
                         .commit();
                 currentFragment = FRAGMENT_TIMER;
+                break;
+            case FRAGMENT_LICENCES:
+                navigationView.getMenu().getItem(FRAGMENT_LICENCES).setChecked(true);
+                Log.d("FRAGMENT_LICENCE",":::::::::");
+                setTitle("Licences");
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.container, licencesFragment.newInstance())
+                        .commit();
+                currentFragment = FRAGMENT_LICENCES;
                 break;
             case NO_FRAGMENT:
                 //test pour premier affichage car current fragment = NO_FRAGMENT
@@ -141,7 +154,12 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
         switch (id){
             case R.id.nav_timer:
-                displayFragment(FRAGMENT_TIMER);
+                if(currentFragment != FRAGMENT_TIMER)
+                    displayFragment(FRAGMENT_TIMER);
+                break;
+            case R.id.nav_licence:
+                if(currentFragment != FRAGMENT_LICENCES)
+                    displayFragment(FRAGMENT_LICENCES);
                 break;
             case R.id.nav_share:
                 displayFragment(NO_FRAGMENT);
