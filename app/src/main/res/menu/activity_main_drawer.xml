@@ -8,7 +8,7 @@
             android:title="Hocklines timer" />
         <item
             android:id="@+id/nav_licence"
-            android:icon="@drawable/ic_menu_timer"
+            android:icon="@drawable/ic_menu_licence"
             android:title="Licences" />
 
     </group>

@@ -2,57 +2,36 @@ package com.example.flo.hocklines;
 
 import android.content.Context;
 import android.content.res.Resources;
-import android.graphics.Color;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.app.Fragment;
-import android.support.v7.widget.ThemedSpinnerAdapter;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.ThemedSpinnerAdapter;
 import android.support.v7.widget.Toolbar;
-import android.view.Menu;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
 import com.example.flo.hocklines.events.SearchVisibilityEvent;
 import com.example.flo.hocklines.hocklines_timer.fragment.HocklinesTimerFragment;
-import com.example.flo.hocklines.hocklines_timer.events.IncrementWorkEvent;
-import com.example.flo.hocklines.hocklines_timer.events.SleepTimerEvent;
-import com.example.flo.hocklines.hocklines_timer.events.StopSeanceEvent;
-import com.example.flo.hocklines.hocklines_timer.events.WorkTimerEvent;
-
+import com.example.flo.hocklines.licences.events.SearchLicenceEvent;
 import com.example.flo.hocklines.licences.fragment.LicencesFragment;
-import com.example.flo.hocklines.utils.UtilsFunction;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.GenericTypeIndicator;
-import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.storage.FileDownloadTask;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -90,8 +69,8 @@ public class MainActivity extends AppCompatActivity
 
 
         EventBus.getDefault().register(this);
-        hocklinesTimerFragment = new HocklinesTimerFragment();
-        licencesFragment = new LicencesFragment();
+        hocklinesTimerFragment = HocklinesTimerFragment.newInstance();
+//        licencesFragment = LicencesFragment.newInstance();
         currentFragment = NO_FRAGMENT;
         displayFragment(currentFragment);
 
@@ -127,7 +106,7 @@ public class MainActivity extends AppCompatActivity
                 Log.d("FRAGMENT_TIMER",":::::::::");
                 setTitle("Hocklines Timer");
                 getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.container, hocklinesTimerFragment.newInstance(3))
+                        .replace(R.id.container, hocklinesTimerFragment)
                         .commit();
                 currentFragment = FRAGMENT_TIMER;
                 break;
@@ -136,6 +115,7 @@ public class MainActivity extends AppCompatActivity
                 Log.d("FRAGMENT_LICENCE",":::::::::");
                 setTitle("Licences");
                 searchEdit = (EditText)findViewById(R.id.toolbar_editText_searc);
+                searchEdit.addTextChangedListener(new SearchEditTextWatcher());
                 searchImage = (ImageView)findViewById(R.id.toolbar_imageView_searc);
                 searchImage.setVisibility(View.VISIBLE);
                 getSupportFragmentManager().beginTransaction()
@@ -156,17 +136,51 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    class SearchEditTextWatcher implements TextWatcher {
+
+
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+            EventBus.getDefault().post(new SearchLicenceEvent(s.toString().toLowerCase()));
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+
+        }
+    }
+
     @Subscribe
     public void onSearchVisibilityEvent(SearchVisibilityEvent event){
-        searchEdit.setVisibility(event.visibility);
-        searchImage.setVisibility(event.visibility);
+        if(searchEdit != null){
+            searchEdit.setVisibility(event.visibility);
+            searchImage.setVisibility(event.visibility);
+            searchEdit.setText("");
+        }
+
     }
 
     private void activateSearchEdit(){
-        if(searchEdit.getVisibility() == View.GONE)
+        if(searchEdit.getVisibility() == View.GONE){
+            Animation slideLeft = AnimationUtils.loadAnimation(MainActivity.this,R.anim.right_to_left);
             searchEdit.setVisibility(View.VISIBLE);
-        else
+            searchEdit.startAnimation(slideLeft);
+            searchEdit.requestFocus();
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
+        }
+        else{
+            Animation slideRight = AnimationUtils.loadAnimation(MainActivity.this,R.anim.left_to_right);
+            searchEdit.startAnimation(slideRight);
             searchEdit.setVisibility(View.GONE);
+            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(searchEdit.getWindowToken(), 0);
+        }
     }
 
     public void toolbarSearch(View v){
@@ -279,92 +293,91 @@ public class MainActivity extends AppCompatActivity
      * Traitement Fragment HocklinesTimer
      */
 
-    @Subscribe
-    public void onIncrementWorkEvent(final IncrementWorkEvent event) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                int exercice = hocklinesTimerFragment.getCurrentExercice();
-                int currentSerie = hocklinesTimerFragment.getCurrentSerie();
-                if ((exercice + 1) % hocklinesTimerFragment.getNbExercice() == 0) {
-                    int serie = hocklinesTimerFragment.getCurrentSerie();
-                    currentSerie = (serie + 1) % hocklinesTimerFragment.getNbSerie();
-                    hocklinesTimerFragment.setCurrentSerie(currentSerie);
-                    hocklinesTimerFragment.getNbSerieMax().setText(hocklinesTimerFragment.getCurrentSerie() + "");
-                }
-                int currentExercice = (exercice + 1) % hocklinesTimerFragment.getNbExercice();
-                hocklinesTimerFragment.setCurrentExercice(currentExercice);
-                hocklinesTimerFragment.getNbExerciceMax().setText(currentExercice + "");
+//    @Subscribe
+//    public void onIncrementWorkEvent(final IncrementWorkEvent event) {
+//        runOnUiThread(new Runnable() {
+//            @Override
+//            public void run() {
+//                int exercice = hocklinesTimerFragment.getCurrentExercice();
+//                int currentSerie = hocklinesTimerFragment.getCurrentSerie();
+//                if ((exercice + 1) % hocklinesTimerFragment.getNbExercice() == 0) {
+//                    int serie = hocklinesTimerFragment.getCurrentSerie();
+//                    currentSerie = (serie + 1) % hocklinesTimerFragment.getNbSerie();
+//                    hocklinesTimerFragment.setCurrentSerie(currentSerie);
+//                    hocklinesTimerFragment.getNbSerieMax().setText(hocklinesTimerFragment.getCurrentSerie() + "");
+//                }
+//                int currentExercice = (exercice + 1) % hocklinesTimerFragment.getNbExercice();
+//                hocklinesTimerFragment.setCurrentExercice(currentExercice);
+//                hocklinesTimerFragment.getNbExerciceMax().setText(currentExercice + "");
+//
+//                Log.d("currentExercice",currentExercice+"");
+//                Log.d("currentSerie",currentSerie+"");
+//            }
+//        });
+//    }
 
-                Log.d("currentExercice",currentExercice+"");
-                Log.d("currentSerie",currentSerie+"");
-            }
-        });
-
-    }
-
-    @Subscribe
-    public void onWorkTimerEvent(final WorkTimerEvent event) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                hocklinesTimerFragment.getTypeTimer().setText("Exercice :");
-                hocklinesTimerFragment.getTimerText().setText(event.currentTimer);
-            }
-        });
-    }
-
-    @Subscribe
-    public void onSleepTimerEvent(final SleepTimerEvent event) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                hocklinesTimerFragment.getTypeTimer().setText("Repos :");
-                hocklinesTimerFragment.getTimerText().setText(event.currentTimer);
-            }
-        });
-
-
-    }
-
-    @Subscribe
-    public void onStopSeanceEvent(final StopSeanceEvent event) {
-
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                hocklinesTimerFragment.getTimer().setSleepTimer(null);
-                hocklinesTimerFragment.getTimer().setWorkTimer(null);
-                hocklinesTimerFragment.setTimer(null);
-                hocklinesTimerFragment.getStop().setEnabled(false);
-                hocklinesTimerFragment.getStart().setEnabled(true);
-                hocklinesTimerFragment.getTimerText().setText("00:00");
-                hocklinesTimerFragment.setCurrentExercice(hocklinesTimerFragment.getCurrentExercice()+1);
-                hocklinesTimerFragment.setCurrentSerie(hocklinesTimerFragment.getCurrentSerie()+1);
-                hocklinesTimerFragment.getNbSerieMax().setText(hocklinesTimerFragment.getNbSerieMaxText().getText());
-                hocklinesTimerFragment.getNbExerciceMax().setText(hocklinesTimerFragment.getNbExerciceMaxText().getText());
-                hocklinesTimerFragment.getNbExerciceMaxText().setVisibility(View.INVISIBLE);
-                hocklinesTimerFragment.getNbSerieMaxText().setVisibility(View.INVISIBLE);
-                hocklinesTimerFragment.getSeparator1().setVisibility(View.INVISIBLE);
-                hocklinesTimerFragment.getSeparator2().setVisibility(View.INVISIBLE);
-                setEnableAllEditText(true);
-            }
-        });
-
-
-    }
-
-    public void setEnableAllEditText(final boolean b){
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                hocklinesTimerFragment.getNbExerciceMax().setEnabled(b);
-                hocklinesTimerFragment.getNbSerieMax().setEnabled(b);
-                hocklinesTimerFragment.getWorkTimerMinute().setEnabled(b);
-                hocklinesTimerFragment.getWorkTimerSeconde().setEnabled(b);
-                hocklinesTimerFragment.getSleepTimerMinute().setEnabled(b);
-                hocklinesTimerFragment.getSleepTimerSeconde().setEnabled(b);
-            }
-        });
-    }
+//    @Subscribe
+//    public void onWorkTimerEvent(final WorkTimerEvent event) {
+//        runOnUiThread(new Runnable() {
+//            @Override
+//            public void run() {
+//                hocklinesTimerFragment.getTypeTimer().setText("Exercice :");
+//                hocklinesTimerFragment.getTimerText().setText(event.currentTimer);
+//            }
+//        });
+//    }
+//
+//    @Subscribe
+//    public void onSleepTimerEvent(final SleepTimerEvent event) {
+//        runOnUiThread(new Runnable() {
+//            @Override
+//            public void run() {
+//                hocklinesTimerFragment.getTypeTimer().setText("Repos :");
+//                hocklinesTimerFragment.getTimerText().setText(event.currentTimer);
+//            }
+//        });
+//
+//
+//    }
+//
+//    @Subscribe
+//    public void onStopSeanceEvent(final StopSeanceEvent event) {
+//
+//        runOnUiThread(new Runnable() {
+//            @Override
+//            public void run() {
+//                hocklinesTimerFragment.getTimer().setSleepTimer(null);
+//                hocklinesTimerFragment.getTimer().setWorkTimer(null);
+//                hocklinesTimerFragment.setTimer(null);
+//                hocklinesTimerFragment.getStop().setEnabled(false);
+//                hocklinesTimerFragment.getStart().setEnabled(true);
+//                hocklinesTimerFragment.getTimerText().setText("00:00");
+//                hocklinesTimerFragment.setCurrentExercice(hocklinesTimerFragment.getCurrentExercice()+1);
+//                hocklinesTimerFragment.setCurrentSerie(hocklinesTimerFragment.getCurrentSerie()+1);
+//                hocklinesTimerFragment.getNbSerieMax().setText(hocklinesTimerFragment.getNbSerieMaxText().getText());
+//                hocklinesTimerFragment.getNbExerciceMax().setText(hocklinesTimerFragment.getNbExerciceMaxText().getText());
+//                hocklinesTimerFragment.getNbExerciceMaxText().setVisibility(View.INVISIBLE);
+//                hocklinesTimerFragment.getNbSerieMaxText().setVisibility(View.INVISIBLE);
+//                hocklinesTimerFragment.getSeparator1().setVisibility(View.INVISIBLE);
+//                hocklinesTimerFragment.getSeparator2().setVisibility(View.INVISIBLE);
+//                setEnableAllEditText(true);
+//            }
+//        });
+//
+//
+//    }
+//
+//    public void setEnableAllEditText(final boolean b){
+//        runOnUiThread(new Runnable() {
+//            @Override
+//            public void run() {
+//                hocklinesTimerFragment.getNbExerciceMax().setEnabled(b);
+//                hocklinesTimerFragment.getNbSerieMax().setEnabled(b);
+//                hocklinesTimerFragment.getWorkTimerMinute().setEnabled(b);
+//                hocklinesTimerFragment.getWorkTimerSeconde().setEnabled(b);
+//                hocklinesTimerFragment.getSleepTimerMinute().setEnabled(b);
+//                hocklinesTimerFragment.getSleepTimerSeconde().setEnabled(b);
+//            }
+//        });
+//    }
 }

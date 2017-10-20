@@ -13,8 +13,15 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.example.flo.hocklines.R;
+import com.example.flo.hocklines.hocklines_timer.events.IncrementWorkEvent;
+import com.example.flo.hocklines.hocklines_timer.events.SleepTimerEvent;
+import com.example.flo.hocklines.hocklines_timer.events.StopSeanceEvent;
+import com.example.flo.hocklines.hocklines_timer.events.WorkTimerEvent;
 import com.example.flo.hocklines.hocklines_timer.models.Timer;
 import com.example.flo.hocklines.hocklines_timer.models.TimerGestionnaire;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 
 /**
  * Created by Flo on 09/10/2017.
@@ -53,26 +60,110 @@ public class HocklinesTimerFragment extends Fragment {
     int nbExercice;
 
     public HocklinesTimerFragment() {
+        EventBus.getDefault().register(this);
+    }
+
+    @Subscribe
+    public void onIncrementWorkEvent(final IncrementWorkEvent event) {
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                int exercice = currentExercice;
+                int currentSerie = getCurrentSerie();
+                if ((exercice + 1) % getNbExercice() == 0) {
+                    int serie = getCurrentSerie();
+                    currentSerie = (serie + 1) % getNbSerie();
+                    setCurrentSerie(currentSerie);
+                    getNbSerieMax().setText(getCurrentSerie() + "");
+                }
+                int currentExercice = (exercice + 1) % getNbExercice();
+                setCurrentExercice(currentExercice);
+                getNbExerciceMax().setText(currentExercice + "");
+
+                Log.d("currentExercice",currentExercice+"");
+                Log.d("currentSerie",currentSerie+"");
+            }
+        });
+    }
+
+    @Subscribe
+    public void onWorkTimerEvent(final WorkTimerEvent event) {
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                getTypeTimer().setText("Exercice :");
+                getTimerText().setText(event.currentTimer);
+            }
+        });
+    }
+
+    @Subscribe
+    public void onSleepTimerEvent(final SleepTimerEvent event) {
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                getTypeTimer().setText("Repos :");
+                getTimerText().setText(event.currentTimer);
+            }
+        });
+
 
     }
+
+    @Subscribe
+    public void onStopSeanceEvent(final StopSeanceEvent event) {
+
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                getTimer().setSleepTimer(null);
+                getTimer().setWorkTimer(null);
+                setTimer(null);
+                getStop().setEnabled(false);
+                getStart().setEnabled(true);
+                getTimerText().setText("00:00");
+                setCurrentExercice(getCurrentExercice()+1);
+                setCurrentSerie(getCurrentSerie()+1);
+                getNbSerieMax().setText(getNbSerieMaxText().getText());
+                getNbExerciceMax().setText(getNbExerciceMaxText().getText());
+                getNbExerciceMaxText().setVisibility(View.INVISIBLE);
+                getNbSerieMaxText().setVisibility(View.INVISIBLE);
+                getSeparator1().setVisibility(View.INVISIBLE);
+                getSeparator2().setVisibility(View.INVISIBLE);
+                setEnableAllEditText(true);
+            }
+        });
+
+
+    }
+
+    public void setEnableAllEditText(final boolean b){
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                getNbExerciceMax().setEnabled(b);
+                getNbSerieMax().setEnabled(b);
+                getWorkTimerMinute().setEnabled(b);
+                getWorkTimerSeconde().setEnabled(b);
+                getSleepTimerMinute().setEnabled(b);
+                getSleepTimerSeconde().setEnabled(b);
+            }
+        });
+    }
+
 
     /**
      * Returns a new instance of this fragment for the given section
      * number.
      */
-    public HocklinesTimerFragment newInstance(int sectionNumber) {
-        Bundle args = new Bundle();
-        args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-        this.setArguments(args);
-        return this;
+    public static HocklinesTimerFragment newInstance() {
+        return new HocklinesTimerFragment();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.hocklines_timer_fragment, container, false);
-            /*TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-            textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));*/
         this.init(rootView);
         return rootView;
     }
@@ -120,14 +211,6 @@ public class HocklinesTimerFragment extends Fragment {
 
     }
 
-    public void setEnableAllEditText(final boolean b){
-        nbExerciceMax.setEnabled(b);
-        nbSerieMax.setEnabled(b);
-        workTimerMinute.setEnabled(b);
-        workTimerSeconde.setEnabled(b);
-        sleepTimerMinute.setEnabled(b);
-        sleepTimerSeconde.setEnabled(b);
-    }
 
 
 
@@ -240,6 +323,7 @@ public class HocklinesTimerFragment extends Fragment {
 
         }
     }
+
 
     public TextView getTimerText() {
         return timerText;

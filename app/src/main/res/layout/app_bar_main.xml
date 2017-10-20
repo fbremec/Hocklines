@@ -32,12 +32,12 @@
                 <EditText
                     android:id="@+id/toolbar_editText_searc"
                     android:visibility="gone"
-                    android:paddingLeft="20dp"
+                    android:paddingLeft="5dp"
                     android:layout_marginEnd="5dp"
                     android:gravity="center_vertical"
                     android:layout_gravity="end"
                     android:hint="Search licence"
-                    android:layout_width="200dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
             <!--<EditText-->
                 <!--android:hint="search licence"-->

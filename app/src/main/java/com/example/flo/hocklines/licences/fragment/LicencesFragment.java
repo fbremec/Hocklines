@@ -1,26 +1,17 @@
 package com.example.flo.hocklines.licences.fragment;
 
 import android.content.pm.ActivityInfo;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.transition.Visibility;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
-import android.util.TypedValue;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.GridLayout;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.ScrollView;
-import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.example.flo.hocklines.MainActivity;
 import com.example.flo.hocklines.R;
 import com.example.flo.hocklines.events.SearchVisibilityEvent;
 import com.example.flo.hocklines.licence.LicenceContentValues;
@@ -28,6 +19,7 @@ import com.example.flo.hocklines.licence.LicenceCursor;
 import com.example.flo.hocklines.licence.LicenceSelection;
 import com.example.flo.hocklines.licences.events.NameOfLicenceEvent;
 import com.example.flo.hocklines.licences.events.NotExistLicencie;
+import com.example.flo.hocklines.licences.events.SearchLicenceEvent;
 import com.example.flo.hocklines.utils.UtilsFunction;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -47,6 +39,7 @@ import org.greenrobot.eventbus.Subscribe;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 
@@ -59,7 +52,7 @@ public class LicencesFragment extends Fragment {
      */
     private static final String ARG_SECTION_NUMBER = "section_number";
     private ArrayList<String> nameOfLicences;
-    private ArrayList<File> fileOfLicences = new ArrayList<>();
+    private HashMap<String,File> fileOfLicences = new HashMap<>();
 
     public LicencesFragment() {
         EventBus.getDefault().register(this);
@@ -130,7 +123,7 @@ public class LicencesFragment extends Fragment {
             public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
                 // Local temp file has been created
                 Log.d("LOG","SUCCES :: "+localFile.getAbsolutePath());
-                fileOfLicences.add(localFile);
+                fileOfLicences.put(nameOfFile,localFile);
                 if(getContext() != null) {
                     UtilsFunction.updateLicence(nameOfFile, getContext(), new LicenceContentValues().putNomjoueur(nameOfFile).putPathfile(localFile.getAbsolutePath()));
 
@@ -151,18 +144,24 @@ public class LicencesFragment extends Fragment {
         LicenceCursor licence = UtilsFunction.getAllLicence(getContext());
         while(licence.moveToNext()){
             File f = new File(licence.getPathfile());
-            fileOfLicences.add(f);
+            fileOfLicences.put(licence.getNomjoueur(),f);
         }
     }
 
     private void appendAllLicence(){
-        for(File f : fileOfLicences){
+        for(File f : fileOfLicences.values()){
             Log.d("LOG",f.getAbsolutePath());
             ImageView i = new ImageView(getContext());
             Glide.with(getContext()).load(f).into(i);
             gridLayout.addView(i);
         }
 
+    }
+
+    private void appendLicence(File f){
+        ImageView i = new ImageView(getContext());
+        Glide.with(getContext()).load(f).into(i);
+        gridLayout.addView(i);
     }
 
     private void checkIfLicencieExist(){
@@ -195,5 +194,16 @@ public class LicencesFragment extends Fragment {
         getNameOfLicencieFromFirebase();
         Log.d("LOG","REPRISE");
         return rootView;
+    }
+
+    @Subscribe
+    public void onSearchLicenceEvent(SearchLicenceEvent event){
+        gridLayout.removeAllViews();
+        for(String key : fileOfLicences.keySet()){
+            String keyTest = key.toLowerCase();
+            if(keyTest.contains(event.nomLicence)){
+                this.appendLicence(fileOfLicences.get(key));
+            }
+        }
     }
 }
