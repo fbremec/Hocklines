@@ -1,0 +1,14 @@
+
+{
+    "syntaxVersion": 3,
+    "projectPackageId": "com.example.flo.hocklines",
+    "authority": "com.example.flo.hocklines",
+    "providerJavaPackage": "com.example.flo.hocklines",
+    "providerClassName": "HocklinesContentProvider",
+    "sqliteOpenHelperClassName": "HocklinesProviderSQLiteOpenHelper",
+    "sqliteOpenHelperCallbacksClassName": "HocklinesProviderSQLiteOpenHelperCallbacks",
+    "databaseFileName": "hocklines-provider.db",
+    "databaseVersion": 1,
+    "enableForeignKeys": true,
+    "useAnnotations": true
+}

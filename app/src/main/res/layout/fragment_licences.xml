@@ -1,0 +1,22 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.flo.hocklines.licences.fragment.LicencesFragment">
+
+
+    <ScrollView
+        android:id="@+id/fragment_licences_scrollView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
+        <GridLayout
+            android:columnCount="1"
+            android:id="@+id/fragment_licences_gridLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+        </GridLayout>
+    </ScrollView>
+</FrameLayout>

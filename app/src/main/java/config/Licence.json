@@ -1,0 +1,17 @@
+{
+  "documentation": "weapon Provider, Provider For weapon",
+  "fields": [
+    {
+      "documentation": "identifiant",
+      "name": "nomJoueur",
+      "type": "String",
+      "nullable": false
+    },
+    {
+      "documentation": "file",
+      "name": "pathFile",
+      "type": "String",
+      "nullable": false
+    }
+  ]
+}
