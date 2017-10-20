@@ -115,7 +115,7 @@ public class LicencesFragment extends Fragment {
 
     private void dlLicenceFromFirebaseStorage(final String nameOfFile) throws IOException {
         StorageReference storageRef = FirebaseStorage.getInstance().getReference();
-        StorageReference pathReference = storageRef.child(nameOfFile+".png");
+        StorageReference pathReference = storageRef.child("licences/"+nameOfFile+".png");
         final File localFile = File.createTempFile(nameOfFile, ".png");
 
         pathReference.getFile(localFile).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
@@ -126,7 +126,7 @@ public class LicencesFragment extends Fragment {
                 fileOfLicences.put(nameOfFile,localFile);
                 if(getContext() != null) {
                     UtilsFunction.updateLicence(nameOfFile, getContext(), new LicenceContentValues().putNomjoueur(nameOfFile).putPathfile(localFile.getAbsolutePath()));
-
+                    appendLicence(localFile);
                     //Glide.with(getContext()).load(localFile).into(i);
                 }
             }
@@ -159,6 +159,7 @@ public class LicencesFragment extends Fragment {
     }
 
     private void appendLicence(File f){
+        gridLayout.setRowCount(gridLayout.getRowCount()+1);
         ImageView i = new ImageView(getContext());
         Glide.with(getContext()).load(f).into(i);
         gridLayout.addView(i);
@@ -183,8 +184,7 @@ public class LicencesFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_licences, container, false);
         getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
-
-
+        
         gridLayout = (GridLayout)rootView.findViewById(R.id.fragment_licences_gridLayout);
         gridLayout.removeAllViews();
         this.getLicenceFromBDD();
