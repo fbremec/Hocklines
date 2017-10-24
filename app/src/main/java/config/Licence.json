@@ -8,10 +8,35 @@
       "nullable": false
     },
     {
+      "documentation": "equipe",
+      "name": "equipe",
+      "type": "String",
+      "nullable": false
+    },
+    {
       "documentation": "file",
       "name": "pathFile",
       "type": "String",
       "nullable": false
+    },
+    {
+      "documentation": "num licence",
+      "name": "numLicence",
+      "type": "Integer",
+      "nullable": false
+    },
+    {
+      "documentation": "maillot blanc",
+      "name": "numeroMaillotBlanc",
+      "type": "Integer",
+      "nullable": true
+    },
+    {
+      "documentation": "maillot noir",
+      "name": "numeroMaillotNoir",
+      "type": "Integer",
+      "nullable": true
     }
+
   ]
 }

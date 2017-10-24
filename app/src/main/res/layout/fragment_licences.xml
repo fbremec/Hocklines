@@ -13,9 +13,10 @@
 
         <GridLayout
             android:columnCount="1"
+            android:rowCount="0"
             android:id="@+id/fragment_licences_gridLayout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="match_parent">
 
         </GridLayout>
     </ScrollView>

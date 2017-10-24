@@ -2,10 +2,12 @@ package com.example.flo.hocklines.hocklines_timer.models;
 
 import android.util.Log;
 
+import com.example.flo.hocklines.hocklines_timer.events.PlaySoundEvent;
 import com.example.flo.hocklines.hocklines_timer.events.SleepTimerEvent;
 import com.example.flo.hocklines.hocklines_timer.events.SleepTimerFinishEvent;
 import com.example.flo.hocklines.hocklines_timer.events.WorkTimerEvent;
 import com.example.flo.hocklines.hocklines_timer.events.WorkTimerFinishEvent;
+import com.example.flo.hocklines.utils.UtilsFunction;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -53,6 +55,7 @@ public class Timer extends Thread{
                 for(int currentSeconde=0; currentSeconde<secondeEnd; currentSeconde++){
                     updateTimer();
                 }
+                EventBus.getDefault().post(new PlaySoundEvent());
                 updateSeconde = 0;
             }
             updateMinute ++;

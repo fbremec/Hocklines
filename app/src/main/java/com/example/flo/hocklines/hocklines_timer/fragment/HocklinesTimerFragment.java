@@ -1,5 +1,6 @@
 package com.example.flo.hocklines.hocklines_timer.fragment;
 
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.text.Editable;
@@ -11,14 +12,17 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.flo.hocklines.R;
 import com.example.flo.hocklines.hocklines_timer.events.IncrementWorkEvent;
+import com.example.flo.hocklines.hocklines_timer.events.PlaySoundEvent;
 import com.example.flo.hocklines.hocklines_timer.events.SleepTimerEvent;
 import com.example.flo.hocklines.hocklines_timer.events.StopSeanceEvent;
 import com.example.flo.hocklines.hocklines_timer.events.WorkTimerEvent;
 import com.example.flo.hocklines.hocklines_timer.models.Timer;
 import com.example.flo.hocklines.hocklines_timer.models.TimerGestionnaire;
+import com.example.flo.hocklines.utils.UtilsFunction;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -60,14 +64,16 @@ public class HocklinesTimerFragment extends Fragment {
     int nbExercice;
 
     public HocklinesTimerFragment() {
-        EventBus.getDefault().register(this);
+                EventBus.getDefault().register(this);
     }
 
     @Subscribe
     public void onIncrementWorkEvent(final IncrementWorkEvent event) {
+
         getActivity().runOnUiThread(new Runnable() {
             @Override
             public void run() {
+
                 int exercice = currentExercice;
                 int currentSerie = getCurrentSerie();
                 if ((exercice + 1) % getNbExercice() == 0) {
@@ -79,7 +85,6 @@ public class HocklinesTimerFragment extends Fragment {
                 int currentExercice = (exercice + 1) % getNbExercice();
                 setCurrentExercice(currentExercice);
                 getNbExerciceMax().setText(currentExercice + "");
-
                 Log.d("currentExercice",currentExercice+"");
                 Log.d("currentSerie",currentSerie+"");
             }
@@ -111,6 +116,11 @@ public class HocklinesTimerFragment extends Fragment {
     }
 
     @Subscribe
+    public void onPlaySOundEvent(PlaySoundEvent event){
+        UtilsFunction.playSound(getContext());
+    }
+
+    @Subscribe
     public void onStopSeanceEvent(final StopSeanceEvent event) {
 
         getActivity().runOnUiThread(new Runnable() {
@@ -119,6 +129,7 @@ public class HocklinesTimerFragment extends Fragment {
                 getTimer().setSleepTimer(null);
                 getTimer().setWorkTimer(null);
                 setTimer(null);
+                setEnableAllEditText(true);
                 getStop().setEnabled(false);
                 getStart().setEnabled(true);
                 getTimerText().setText("00:00");
@@ -130,7 +141,7 @@ public class HocklinesTimerFragment extends Fragment {
                 getNbSerieMaxText().setVisibility(View.INVISIBLE);
                 getSeparator1().setVisibility(View.INVISIBLE);
                 getSeparator2().setVisibility(View.INVISIBLE);
-                setEnableAllEditText(true);
+
             }
         });
 
@@ -286,7 +297,7 @@ public class HocklinesTimerFragment extends Fragment {
         public void afterTextChanged(Editable editable) {
             if(!workTimerMinute.getText().toString().equals("") && !workTimerSeconde.getText().toString().equals("")
                     && !sleepTimerMinute.getText().toString().equals("") && !sleepTimerSeconde.getText().toString().equals("")
-                    && !nbSerieMax.getText().toString().equals("") && !nbExerciceMax.getText().toString().equals("")){
+                    && !nbSerieMax.getText().toString().equals("") && !nbExerciceMax.getText().toString().equals("") && nbExerciceMax.isEnabled()){
                 start.setEnabled(true);
             }else{
                 start.setEnabled(false);

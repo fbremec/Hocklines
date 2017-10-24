@@ -2,6 +2,7 @@ package com.example.flo.hocklines;
 
 import android.content.Context;
 import android.content.res.Resources;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -14,6 +15,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,12 +25,16 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.example.flo.hocklines.events.CircleProgressEvent;
 import com.example.flo.hocklines.events.SearchVisibilityEvent;
 import com.example.flo.hocklines.hocklines_timer.fragment.HocklinesTimerFragment;
 import com.example.flo.hocklines.licences.events.SearchLicenceEvent;
 import com.example.flo.hocklines.licences.fragment.LicencesFragment;
+import com.example.flo.hocklines.Firebase.RealtimeInfoJoueurs;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -36,8 +42,9 @@ import org.greenrobot.eventbus.Subscribe;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
+    public static String equipe = "n3";
     public static final int FRAGMENT_TIMER = 0;
-    private static final int NO_FRAGMENT = -1;
+    private static final int FRAGMENT_MAIN = -1;
     private static final int FRAGMENT_LICENCES = 1;
 
     private HocklinesTimerFragment hocklinesTimerFragment;
@@ -63,19 +70,25 @@ public class MainActivity extends AppCompatActivity
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
+        RealtimeInfoJoueurs.contruct();
+
         navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-
-
         EventBus.getDefault().register(this);
+
         hocklinesTimerFragment = HocklinesTimerFragment.newInstance();
-//        licencesFragment = LicencesFragment.newInstance();
-        currentFragment = NO_FRAGMENT;
+        currentFragment = FRAGMENT_MAIN;
         displayFragment(currentFragment);
 
 
 
+    }
+
+    @Subscribe
+    public void onCircleProgressEvent(CircleProgressEvent event){
+        ProgressBar progress = (ProgressBar)findViewById(R.id.progressBar);
+        progress.setVisibility(event.visibility);
     }
 
     @Override
@@ -83,11 +96,13 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
-        } else if(currentFragment == FRAGMENT_TIMER){
-            Log.d("on back press",":::::::::");
+        } else if(currentFragment == FRAGMENT_TIMER) {
+            Log.d("on back press", ":::::::::");
             saveBeforeBackPress();
-            displayFragment(NO_FRAGMENT);
-        }else{
+            displayFragment(FRAGMENT_MAIN);
+        }else if(currentFragment == FRAGMENT_LICENCES) {
+            displayFragment(FRAGMENT_MAIN);
+        }else if(currentFragment == FRAGMENT_MAIN){
             super.onBackPressed();
         }
     }
@@ -100,11 +115,11 @@ public class MainActivity extends AppCompatActivity
 
 
     private void displayFragment(int fragment){
+        EventBus.getDefault().post(new CircleProgressEvent(View.GONE));
         switch (fragment){
             case FRAGMENT_TIMER:
                 navigationView.getMenu().getItem(FRAGMENT_TIMER).setChecked(true);
-                Log.d("FRAGMENT_TIMER",":::::::::");
-                setTitle("Hocklines Timer");
+                setTitle("Hocklines Timer " + equipe.toUpperCase());
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.container, hocklinesTimerFragment)
                         .commit();
@@ -112,8 +127,7 @@ public class MainActivity extends AppCompatActivity
                 break;
             case FRAGMENT_LICENCES:
                 navigationView.getMenu().getItem(FRAGMENT_LICENCES).setChecked(true);
-                Log.d("FRAGMENT_LICENCE",":::::::::");
-                setTitle("Licences");
+                setTitle("Licences " + equipe.toUpperCase());
                 searchEdit = (EditText)findViewById(R.id.toolbar_editText_searc);
                 searchEdit.addTextChangedListener(new SearchEditTextWatcher());
                 searchImage = (ImageView)findViewById(R.id.toolbar_imageView_searc);
@@ -123,16 +137,17 @@ public class MainActivity extends AppCompatActivity
                         .commit();
                 currentFragment = FRAGMENT_LICENCES;
                 break;
-            /*case NO_FRAGMENT:
+            case FRAGMENT_MAIN:
                 //test pour premier affichage car current fragment = NO_FRAGMENT
                 if(currentFragment !=-1)
                     navigationView.getMenu().getItem(currentFragment).setChecked(false);
                 Log.d("NO_FRAGMENT",":::::::::");
+                setTitle("Hocklines " + equipe.toUpperCase());
                 getSupportFragmentManager().beginTransaction()
-                        .replace(R.id.container, PlaceholderFragment.newInstance(3))
+                        .replace(R.id.container, MainFragment.newInstance("",""))
                         .commit();
-                currentFragment = NO_FRAGMENT;
-                break;*/
+                currentFragment = FRAGMENT_MAIN;
+                break;
         }
     }
 
@@ -146,20 +161,22 @@ public class MainActivity extends AppCompatActivity
 
         @Override
         public void onTextChanged(CharSequence s, int start, int before, int count) {
-            EventBus.getDefault().post(new SearchLicenceEvent(s.toString().toLowerCase()));
+
         }
 
         @Override
         public void afterTextChanged(Editable s) {
-
+            EventBus.getDefault().post(new SearchLicenceEvent(s.toString().toLowerCase()));
         }
     }
 
     @Subscribe
     public void onSearchVisibilityEvent(SearchVisibilityEvent event){
         if(searchEdit != null){
-            searchEdit.setVisibility(event.visibility);
             searchImage.setVisibility(event.visibility);
+            if(event.visibility == View.GONE)
+                searchEdit.setVisibility(event.visibility);
+
             searchEdit.setText("");
         }
 
@@ -186,28 +203,43 @@ public class MainActivity extends AppCompatActivity
     public void toolbarSearch(View v){
         this.activateSearchEdit();
     }
-//
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        // Inflate the menu; this adds items to the action bar if it is present.
-//        getMenuInflater().inflate(R.menu.main, menu);
-//        return true;
-//    }
-//
-//    @Override
-//    public boolean onOptionsItemSelected(MenuItem item) {
-//        // Handle action bar item clicks here. The action bar will
-//        // automatically handle clicks on the Home/Up button, so long
-//        // as you specify a parent activity in AndroidManifest.xml.
-//        Log.d("on click ","::::::::::::::");
-//        int id = item.getItemId();
-//        //noinspection SimplifiableIfStatement
-//        if (id == R.id.action_settings) {
-//            return true;
-//        }
-//
-//        return super.onOptionsItemSelected(item);
-//    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        Log.d("on click ","::::::::::::::");
+        int id = item.getItemId();
+        //noinspection SimplifiableIfStatement
+        switch (id){
+            case R.id.action_n1:
+                equipe = "n1";
+                break;
+            case R.id.action_n2:
+                equipe = "n2";
+                break;
+            case R.id.action_n3:
+                equipe = "n3";
+                break;
+            case R.id.action_n4:
+                equipe = "n4";
+                break;
+        }
+
+        RealtimeInfoJoueurs.contruct();
+        displayFragment(currentFragment);
+
+
+        return super.onOptionsItemSelected(item);
+    }
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
@@ -224,7 +256,7 @@ public class MainActivity extends AppCompatActivity
                     displayFragment(FRAGMENT_LICENCES);
                 break;
             case R.id.nav_share:
-                displayFragment(NO_FRAGMENT);
+                displayFragment(FRAGMENT_MAIN);
                 break;
             case R.id.nav_send:
                 break;
@@ -273,111 +305,14 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    public void timerFragmentClick(View v){
+        displayFragment(FRAGMENT_TIMER);
+    }
 
-//    /**
-//     * A placeholder fragment containing a simple view.
-//     */
-//    public static class PlaceholderFragment extends Fragment {
-//
-//    }
-
-
-
-    public static final int RESUME_AFTER_SAVE = 1;
-    public static final int RESUME = 0;
+    public void licenceFragmentClick(View v){
+        displayFragment(FRAGMENT_LICENCES);
+    }
 
 
 
-
-    /**
-     * Traitement Fragment HocklinesTimer
-     */
-
-//    @Subscribe
-//    public void onIncrementWorkEvent(final IncrementWorkEvent event) {
-//        runOnUiThread(new Runnable() {
-//            @Override
-//            public void run() {
-//                int exercice = hocklinesTimerFragment.getCurrentExercice();
-//                int currentSerie = hocklinesTimerFragment.getCurrentSerie();
-//                if ((exercice + 1) % hocklinesTimerFragment.getNbExercice() == 0) {
-//                    int serie = hocklinesTimerFragment.getCurrentSerie();
-//                    currentSerie = (serie + 1) % hocklinesTimerFragment.getNbSerie();
-//                    hocklinesTimerFragment.setCurrentSerie(currentSerie);
-//                    hocklinesTimerFragment.getNbSerieMax().setText(hocklinesTimerFragment.getCurrentSerie() + "");
-//                }
-//                int currentExercice = (exercice + 1) % hocklinesTimerFragment.getNbExercice();
-//                hocklinesTimerFragment.setCurrentExercice(currentExercice);
-//                hocklinesTimerFragment.getNbExerciceMax().setText(currentExercice + "");
-//
-//                Log.d("currentExercice",currentExercice+"");
-//                Log.d("currentSerie",currentSerie+"");
-//            }
-//        });
-//    }
-
-//    @Subscribe
-//    public void onWorkTimerEvent(final WorkTimerEvent event) {
-//        runOnUiThread(new Runnable() {
-//            @Override
-//            public void run() {
-//                hocklinesTimerFragment.getTypeTimer().setText("Exercice :");
-//                hocklinesTimerFragment.getTimerText().setText(event.currentTimer);
-//            }
-//        });
-//    }
-//
-//    @Subscribe
-//    public void onSleepTimerEvent(final SleepTimerEvent event) {
-//        runOnUiThread(new Runnable() {
-//            @Override
-//            public void run() {
-//                hocklinesTimerFragment.getTypeTimer().setText("Repos :");
-//                hocklinesTimerFragment.getTimerText().setText(event.currentTimer);
-//            }
-//        });
-//
-//
-//    }
-//
-//    @Subscribe
-//    public void onStopSeanceEvent(final StopSeanceEvent event) {
-//
-//        runOnUiThread(new Runnable() {
-//            @Override
-//            public void run() {
-//                hocklinesTimerFragment.getTimer().setSleepTimer(null);
-//                hocklinesTimerFragment.getTimer().setWorkTimer(null);
-//                hocklinesTimerFragment.setTimer(null);
-//                hocklinesTimerFragment.getStop().setEnabled(false);
-//                hocklinesTimerFragment.getStart().setEnabled(true);
-//                hocklinesTimerFragment.getTimerText().setText("00:00");
-//                hocklinesTimerFragment.setCurrentExercice(hocklinesTimerFragment.getCurrentExercice()+1);
-//                hocklinesTimerFragment.setCurrentSerie(hocklinesTimerFragment.getCurrentSerie()+1);
-//                hocklinesTimerFragment.getNbSerieMax().setText(hocklinesTimerFragment.getNbSerieMaxText().getText());
-//                hocklinesTimerFragment.getNbExerciceMax().setText(hocklinesTimerFragment.getNbExerciceMaxText().getText());
-//                hocklinesTimerFragment.getNbExerciceMaxText().setVisibility(View.INVISIBLE);
-//                hocklinesTimerFragment.getNbSerieMaxText().setVisibility(View.INVISIBLE);
-//                hocklinesTimerFragment.getSeparator1().setVisibility(View.INVISIBLE);
-//                hocklinesTimerFragment.getSeparator2().setVisibility(View.INVISIBLE);
-//                setEnableAllEditText(true);
-//            }
-//        });
-//
-//
-//    }
-//
-//    public void setEnableAllEditText(final boolean b){
-//        runOnUiThread(new Runnable() {
-//            @Override
-//            public void run() {
-//                hocklinesTimerFragment.getNbExerciceMax().setEnabled(b);
-//                hocklinesTimerFragment.getNbSerieMax().setEnabled(b);
-//                hocklinesTimerFragment.getWorkTimerMinute().setEnabled(b);
-//                hocklinesTimerFragment.getWorkTimerSeconde().setEnabled(b);
-//                hocklinesTimerFragment.getSleepTimerMinute().setEnabled(b);
-//                hocklinesTimerFragment.getSleepTimerSeconde().setEnabled(b);
-//            }
-//        });
-//    }
 }
