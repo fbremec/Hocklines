@@ -196,7 +196,7 @@ public class LicencesFragment extends Fragment implements LoaderManager.LoaderCa
             }
         }
         if(!data.moveToFirst())
-            Toast.makeText(getContext(),"impossible de télécharger les données de cette équipe",Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(),"impossible de télécharger les données de l'équipe "+MainActivity.equipe,Toast.LENGTH_SHORT).show();
 
 
     }

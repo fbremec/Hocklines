@@ -42,7 +42,7 @@ import org.greenrobot.eventbus.Subscribe;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
-    public static String equipe = "n3";
+    public static String equipe = "N3";
     public static final int FRAGMENT_TIMER = 0;
     private static final int FRAGMENT_MAIN = -1;
     private static final int FRAGMENT_LICENCES = 1;
@@ -120,7 +120,7 @@ public class MainActivity extends AppCompatActivity
         switch (fragment){
             case FRAGMENT_TIMER:
                 navigationView.getMenu().getItem(FRAGMENT_TIMER).setChecked(true);
-                setTitle("Hocklines Timer " + equipe.toUpperCase());
+                setTitle("Hocklines Timer " + equipe);
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.container, hocklinesTimerFragment)
                         .commit();
@@ -128,7 +128,7 @@ public class MainActivity extends AppCompatActivity
                 break;
             case FRAGMENT_LICENCES:
                 navigationView.getMenu().getItem(FRAGMENT_LICENCES).setChecked(true);
-                setTitle("Licences " + equipe.toUpperCase());
+                setTitle("Licences " + equipe);
                 searchEdit = (EditText)findViewById(R.id.toolbar_editText_searc);
                 searchEdit.addTextChangedListener(new SearchEditTextWatcher());
                 searchImage = (ImageView)findViewById(R.id.toolbar_imageView_searc);
@@ -143,7 +143,7 @@ public class MainActivity extends AppCompatActivity
                 if(currentFragment !=-1)
                     navigationView.getMenu().getItem(currentFragment).setChecked(false);
                 Log.d("NO_FRAGMENT",":::::::::");
-                setTitle("Hocklines " + equipe.toUpperCase());
+                setTitle("Hocklines " + equipe);
                 getSupportFragmentManager().beginTransaction()
                         .replace(R.id.container, MainFragment.newInstance("",""))
                         .commit();
@@ -222,16 +222,16 @@ public class MainActivity extends AppCompatActivity
         //noinspection SimplifiableIfStatement
         switch (id){
             case R.id.action_n1:
-                equipe = "n1";
+                equipe = getResources().getString(R.string.n1);
                 break;
             case R.id.action_n2:
-                equipe = "n2";
+                equipe = getResources().getString(R.string.n2);
                 break;
             case R.id.action_n3:
-                equipe = "n3";
+                equipe = getResources().getString(R.string.n3);
                 break;
             case R.id.action_n4:
-                equipe = "n4";
+                equipe = getResources().getString(R.string.n4);
                 break;
         }
 
