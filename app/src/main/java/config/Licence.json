@@ -17,7 +17,7 @@
       "documentation": "file",
       "name": "pathFile",
       "type": "String",
-      "nullable": false
+      "nullable": true
     },
     {
       "documentation": "num licence",

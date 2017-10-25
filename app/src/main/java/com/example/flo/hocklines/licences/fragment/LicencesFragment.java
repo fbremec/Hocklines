@@ -15,7 +15,6 @@ import android.widget.GridLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.bumptech.glide.Glide;
 import com.example.flo.hocklines.licence.LicenceSelection;
 import com.example.flo.hocklines.MainActivity;
@@ -24,11 +23,8 @@ import com.example.flo.hocklines.events.SearchVisibilityEvent;
 import com.example.flo.hocklines.licence.LicenceBean;
 import com.example.flo.hocklines.licences.events.SearchLicenceEvent;
 import com.example.flo.hocklines.utils.UtilsFunction;
-
-
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
-
 import java.io.File;
 import java.util.HashMap;
 
@@ -103,10 +99,6 @@ public class LicencesFragment extends Fragment implements LoaderManager.LoaderCa
     }
 
 
-
-
-
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -116,12 +108,11 @@ public class LicencesFragment extends Fragment implements LoaderManager.LoaderCa
         gridLayout = (GridLayout)rootView.findViewById(R.id.fragment_licences_gridLayout);
         getLoaderManager().initLoader(0, null, this);
         this.listJoueur = new HashMap<>();
-
         return rootView;
     }
 
 
-    //Event declanche to search a licence
+    //Event start to search a licence
     //Send by MainActivity
     @Subscribe
     public void onSearchLicenceEvent(SearchLicenceEvent event){
@@ -204,8 +195,8 @@ public class LicencesFragment extends Fragment implements LoaderManager.LoaderCa
                 appendLicence(bean);
             }
         }
-        if(!data.moveToFirst())
-            Toast.makeText(getContext(),"impossible de télécharger les données de cette équipe",Toast.LENGTH_SHORT).show();
+//        if(!data.moveToFirst())
+//            Toast.makeText(getContext(),"impossible de télécharger les données de cette équipe",Toast.LENGTH_SHORT).show();
 
 
     }

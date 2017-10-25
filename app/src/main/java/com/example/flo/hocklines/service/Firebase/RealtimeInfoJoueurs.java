@@ -33,6 +33,7 @@ public class RealtimeInfoJoueurs {
     }
 
     private static void getListJoueurFromFirebase(final Context context){
+        Log.d("je suis la","je suis la");
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference myRef = database.getReference("infoJoueur/"+ MainActivity.equipe);
         myRef.addValueEventListener(new ValueEventListener() {
@@ -43,7 +44,6 @@ public class RealtimeInfoJoueurs {
                 // whenever data at this location is updated.
                 GenericTypeIndicator<HashMap<String,InfoJoueur>> t = new GenericTypeIndicator<HashMap<String,InfoJoueur>>(){};
                 listJoueur = dataSnapshot.getValue(t);
-                Log.d("Firebase","result ok !");
                 if(listJoueur != null){
                     StoragePathLicence.construct(MainActivity.equipe,listJoueur,context);
                     listPlayerByEquipe.put(MainActivity.equipe,listJoueur);

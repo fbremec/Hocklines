@@ -42,6 +42,9 @@ public class StoragePathLicence {
     //DL licence.png of player 'playerName' in Firebase Storage then when sucess put the path file of Downloaded licence in the BDD and append image to View
     private static void dlLicenceFromFirebaseStorage(final String playerName, final InfoJoueur infoJoueur,final String equipe, final Context context) {
         try {
+            if(!equipe.equals("n3"))
+                EventBus.getDefault().post(new CircleProgressEvent(View.VISIBLE));
+
             StorageReference storageRef = FirebaseStorage.getInstance().getReference();
             StorageReference pathReference = storageRef.child("licences/" + playerName + ".png");
             final File localFile = File.createTempFile(playerName, ".png");
