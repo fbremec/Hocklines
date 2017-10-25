@@ -2,62 +2,42 @@ package com.example.flo.hocklines.licences.fragment;
 
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.database.Cursor;
 import android.graphics.Color;
-import android.graphics.Point;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.transition.Visibility;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
 import android.util.Log;
-import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.widget.FrameLayout;
 import android.widget.GridLayout;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
-import com.example.flo.hocklines.Firebase.RealtimeInfoJoueurs;
-import com.example.flo.hocklines.Firebase.StoragePathLicence;
+import com.example.flo.hocklines.licence.LicenceSelection;
 import com.example.flo.hocklines.MainActivity;
 import com.example.flo.hocklines.R;
-import com.example.flo.hocklines.events.CircleProgressEvent;
-import com.example.flo.hocklines.events.FirebaseRealtimeResultEvent;
 import com.example.flo.hocklines.events.SearchVisibilityEvent;
 import com.example.flo.hocklines.licence.LicenceBean;
-import com.example.flo.hocklines.licence.LicenceContentValues;
-import com.example.flo.hocklines.licence.LicenceCursor;
-import com.example.flo.hocklines.licence.LicenceSelection;
 import com.example.flo.hocklines.licences.events.SearchLicenceEvent;
 import com.example.flo.hocklines.utils.UtilsFunction;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.storage.FileDownloadTask;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
+
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 
 
-public class LicencesFragment extends Fragment {
+public class LicencesFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>{
 
 
     private GridLayout gridLayout;
-
+    private HashMap<String,LicenceBean> listJoueur;
 
     public LicencesFragment() {
         EventBus.getDefault().register(this);
@@ -79,50 +59,10 @@ public class LicencesFragment extends Fragment {
         getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
     }
 
-    //DL licence.png of player 'playerName' in Firebase Storage then when sucess put the path file of Downloaded licence in the BDD and append image to View
-    private void dlLicenceFromFirebaseStorage(final String playerName) {
-        try {
-            StorageReference storageRef = FirebaseStorage.getInstance().getReference();
-            StorageReference pathReference = storageRef.child("licences/" + playerName + ".png");
-            final File localFile = File.createTempFile(playerName, ".png");
-
-            pathReference.getFile(localFile).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
-                @Override
-                public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
-                    // Local temp file has been created
-                    Log.d("LOG", "SUCCES :: " + localFile.getAbsolutePath());
-                    if (getContext() != null) {
-                        UtilsFunction.updateLicence(playerName, getContext(), new LicenceContentValues().putNomjoueur(playerName)
-                                                                                                        .putEquipe(MainActivity.equipe)
-                                                                                                        .putPathfile(localFile.getAbsolutePath())
-                                                                                                        .putNumeromaillotblanc(RealtimeInfoJoueurs.listJoueur.get(playerName).getNumeroMaillotBlanc())
-                                                                                                        .putNumeromaillotnoir(RealtimeInfoJoueurs.listJoueur.get(playerName).getNumeroMaillotNoir())
-                                                                                                        .putNumlicence(RealtimeInfoJoueurs.listJoueur.get(playerName).getNumLicence()));
-
-                        appendLicence(constructBean(playerName,RealtimeInfoJoueurs.listJoueur.get(playerName).getNumeroMaillotBlanc()
-                                ,RealtimeInfoJoueurs.listJoueur.get(playerName).getNumeroMaillotNoir(),localFile.getAbsolutePath()
-                                ,RealtimeInfoJoueurs.listJoueur.get(playerName).getNumLicence()));
-                        //Glide.with(getContext()).load(localFile).into(i);
-                        EventBus.getDefault().post(new CircleProgressEvent(View.GONE));
-                    }
-                }
-            }).addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception exception) {
-                    // Handle any errors
-                    Log.d("LOG", "FAIL");
-                }
-            });
-        }catch (IOException e){
-
-        }
-
-    }
 
     //put licence file png to view
     private void appendLicence(LicenceBean bean){
         if(gridLayout != null){
-            StoragePathLicence.listPathLicence.put(bean.getNomjoueur(), bean.getPathfile());
             gridLayout.setRowCount(gridLayout.getRowCount()+3);
             final ImageView i = new ImageView(getContext());
             Glide.with(getContext()).load(new File(bean.getPathfile())).into(i);
@@ -162,31 +102,10 @@ public class LicencesFragment extends Fragment {
 
     }
 
-    // for all result of Firebase Realtime database check
-    //      if player exist in BDD
-    //          then true getPathFile from BDD, put path in StoragePathLicence and append file to view
-    //          then false download licence.png from Firebase Storage
-    private void constructLicencesListFromRealtime(){
-        gridLayout.removeAllViews();
-        if(RealtimeInfoJoueurs.listJoueur != null){
-            for(String nomJoueur : RealtimeInfoJoueurs.listJoueur.keySet()){
-                if(!UtilsFunction.isLicenceExistInBDD(nomJoueur,getContext())){
-                    dlLicenceFromFirebaseStorage(nomJoueur);
-                }
-            }
-        }
-
-    }
 
 
-    private void constructLicenceFromDatabase(){
-        LicenceCursor cursor = UtilsFunction.getAllLicence(getContext());
-        do{
-            if(cursor.getEquipe().equals(MainActivity.equipe)){
-                this.appendLicence(constructBean(cursor.getNomjoueur(),cursor.getNumeromaillotblanc(),cursor.getNumeromaillotnoir(),cursor.getPathfile(),cursor.getNumlicence()));
-            }
-        }while(cursor.moveToNext());
-    }
+
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -195,39 +114,12 @@ public class LicencesFragment extends Fragment {
         EventBus.getDefault().post(new SearchVisibilityEvent(View.VISIBLE));
         getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
         gridLayout = (GridLayout)rootView.findViewById(R.id.fragment_licences_gridLayout);
-        LicenceCursor cursor = UtilsFunction.getAllLicenceByEquipe(getContext(),MainActivity.equipe);
-        if(cursor.moveToFirst()){
-            constructLicenceFromDatabase();
-        }else{
-            if(RealtimeInfoJoueurs.listJoueur != null){
-                EventBus.getDefault().post(new CircleProgressEvent(View.VISIBLE));
-                this.constructLicencesListFromRealtime();
-            }
-            else
-                EventBus.getDefault().post(new CircleProgressEvent(View.GONE));
-        }
+        getLoaderManager().initLoader(0, null, this);
+        this.listJoueur = new HashMap<>();
 
-
-        Log.d("LOG","REPRISE");
         return rootView;
     }
 
-    //If result of Realtime become later than onCreate Licence Fragment this event are declenche when result Firebase Realtime finish
-    //Send by RealtimeInfoJoueur
-    @Subscribe
-    public void onFirebaseRealtimeResultEvent(FirebaseRealtimeResultEvent event){
-        if(getContext() != null){
-            LicenceCursor cursor = UtilsFunction.getAllLicenceByEquipe(getContext(),MainActivity.equipe);
-            if(!cursor.moveToNext()){
-                if(RealtimeInfoJoueurs.listJoueur != null)
-                    this.constructLicencesListFromRealtime();
-                else{
-                    EventBus.getDefault().post(new CircleProgressEvent(View.GONE));
-                    Toast.makeText(getContext(),"Impossible de télécharger les données des joueurs de l'équipe "+MainActivity.equipe.toUpperCase(),Toast.LENGTH_SHORT).show();
-                }
-            }
-        }
-    }
 
     //Event declanche to search a licence
     //Send by MainActivity
@@ -236,17 +128,18 @@ public class LicencesFragment extends Fragment {
         Log.d("Search::::::::::",event.nomLicence);
         if(gridLayout != null)
             gridLayout.removeAllViews();
-        for(String key : StoragePathLicence.listPathLicence.keySet()){
+        for(String key : listJoueur.keySet()){
             String keyTest = key.toLowerCase();
-            if(keyTest.contains(event.nomLicence) && RealtimeInfoJoueurs.listJoueur.get(key) != null){
-                this.appendLicence(constructBean(key,RealtimeInfoJoueurs.listJoueur.get(key).getNumeroMaillotBlanc()
-                        ,RealtimeInfoJoueurs.listJoueur.get(key).getNumeroMaillotNoir(),StoragePathLicence.listPathLicence.get(key)
-                        ,RealtimeInfoJoueurs.listJoueur.get(key).getNumLicence()));
+            if(keyTest.contains(event.nomLicence) && listJoueur != null &&listJoueur.get(key) != null){
+                this.appendLicence(constructBean(key,listJoueur.get(key).getNumeromaillotblanc()
+                        ,listJoueur.get(key).getNumeromaillotnoir(), listJoueur.get(key).getPathfile()
+                        ,listJoueur.get(key).getNumlicence()));
             }
         }
     }
 
     private LicenceBean constructBean(String nomJoueur, int numMaillotBlanc, int numMaillotNoir,String pathFile, int numLicence){
+        gridLayout.removeAllViews();
         LicenceBean bean = new LicenceBean();
         bean.setNumeromaillotblanc(numMaillotBlanc);
         bean.setNumeromaillotnoir(numMaillotNoir);
@@ -292,4 +185,35 @@ public class LicencesFragment extends Fragment {
             }
         }
     }
+
+
+    @Override
+    public android.support.v4.content.Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        LicenceSelection where = new LicenceSelection();
+        where.equipe(MainActivity.equipe);
+        return new android.support.v4.content.CursorLoader(getContext(),where.uri(),null,where.sel(),where.args(),null);
+    }
+
+    @Override
+    public void onLoadFinished(android.support.v4.content.Loader<Cursor> loader, Cursor data) {
+        Log.d("onLoad",data.getColumnName(3));
+        while (data.moveToNext()){
+            LicenceBean bean = constructBean(data.getString(1),data.getInt(5),data.getInt(6),data.getString(3),data.getInt(4));
+            if(bean.getPathfile() != null){
+                this.listJoueur.put(bean.getNomjoueur(),bean);
+                appendLicence(bean);
+            }
+        }
+        if(!data.moveToFirst())
+            Toast.makeText(getContext(),"impossible de télécharger les données de cette équipe",Toast.LENGTH_SHORT).show();
+
+
+    }
+
+    @Override
+    public void onLoaderReset(android.support.v4.content.Loader<Cursor> loader) {
+
+    }
+
+
 }

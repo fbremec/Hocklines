@@ -1,8 +1,8 @@
 package com.example.flo.hocklines;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
-import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -27,14 +27,14 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.flo.hocklines.events.CircleProgressEvent;
 import com.example.flo.hocklines.events.SearchVisibilityEvent;
 import com.example.flo.hocklines.hocklines_timer.fragment.HocklinesTimerFragment;
 import com.example.flo.hocklines.licences.events.SearchLicenceEvent;
 import com.example.flo.hocklines.licences.fragment.LicencesFragment;
-import com.example.flo.hocklines.Firebase.RealtimeInfoJoueurs;
+import com.example.flo.hocklines.service.Firebase.RealtimeInfoJoueurs;
+import com.example.flo.hocklines.service.HocklinesService;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -70,7 +70,8 @@ public class MainActivity extends AppCompatActivity
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
-        RealtimeInfoJoueurs.contruct();
+        Intent intent = new Intent(this, HocklinesService.class);
+        startService(intent);
 
         navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
@@ -234,7 +235,7 @@ public class MainActivity extends AppCompatActivity
                 break;
         }
 
-        RealtimeInfoJoueurs.contruct();
+        RealtimeInfoJoueurs.contruct(getApplicationContext());
         displayFragment(currentFragment);
 
 

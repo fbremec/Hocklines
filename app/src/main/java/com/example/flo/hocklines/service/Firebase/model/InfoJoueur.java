@@ -1,4 +1,4 @@
-package com.example.flo.hocklines.model;
+package com.example.flo.hocklines.service.Firebase.model;
 
 /**
  * Created by Flo on 20/10/2017.
