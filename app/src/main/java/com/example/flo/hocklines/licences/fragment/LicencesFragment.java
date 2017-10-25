@@ -195,8 +195,8 @@ public class LicencesFragment extends Fragment implements LoaderManager.LoaderCa
                 appendLicence(bean);
             }
         }
-//        if(!data.moveToFirst())
-//            Toast.makeText(getContext(),"impossible de télécharger les données de cette équipe",Toast.LENGTH_SHORT).show();
+        if(!data.moveToFirst())
+            Toast.makeText(getContext(),"impossible de télécharger les données de cette équipe",Toast.LENGTH_SHORT).show();
 
 
     }
