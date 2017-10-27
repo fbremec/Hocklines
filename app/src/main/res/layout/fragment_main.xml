@@ -29,18 +29,21 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/fragment_main_linearlayout_licence"
         android:onClick="licenceFragmentClick"
         android:layout_margin="20dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical">
         <ImageView
+            android:id="@+id/fragment_main_imageview_licence"
             android:layout_gravity="center"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/ic_main_fragment_licences"/>
 
         <TextView
+            android:id="@+id/fragment_main_textview_licence"
             android:layout_gravity="center"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

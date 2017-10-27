@@ -1,6 +1,7 @@
 package com.example.flo.hocklines;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -9,7 +10,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.TextView;
+
+import com.example.flo.hocklines.events.ConnectEvent;
+import com.example.flo.hocklines.events.DisconnectEvent;
+import com.example.flo.hocklines.service.HocklinesService;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
 
 
 /**
@@ -26,14 +37,27 @@ public class MainFragment extends Fragment {
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+
+    private LinearLayout licenceLinear;
+
 
     private OnFragmentInteractionListener mListener;
 
     public MainFragment() {
+        EventBus.getDefault().register(this);
         // Required empty public constructor
+    }
+
+    @Subscribe
+    public void onDisconnectEvent(DisconnectEvent event){
+        licenceLinear.setVisibility(View.GONE);
+    }
+
+    @Subscribe
+    public void onConnectEvent(ConnectEvent event){
+        licenceLinear.setVisibility(View.VISIBLE);
+        Intent intent = new Intent(getActivity(), HocklinesService.class);
+        getActivity().startService(intent);
     }
 
     /**
@@ -58,8 +82,7 @@ public class MainFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
+
         }
     }
 
@@ -68,6 +91,9 @@ public class MainFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View rootView =  inflater.inflate(R.layout.fragment_main, container, false);
+        licenceLinear = (LinearLayout) rootView.findViewById(R.id.fragment_main_linearlayout_licence);
+
+
         return rootView;
     }
 

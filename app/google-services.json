@@ -59,6 +59,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "401986861394-7jj5tn9dqki608g2pmp4nv5nl6j4lgm6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.flo.hocklines",
+            "certificate_hash": "a49008105734df322ea2474647ca0de3cac68df2"
+          }
+        },
+        {
           "client_id": "401986861394-qlvm74m4e26v6mtitilu1hmj9aq2pvqi.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
