@@ -4,7 +4,7 @@
     android:layout_gravity="center"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:rowCount="2"
+    android:rowCount="4"
     android:columnCount="2"
     tools:context="com.example.flo.hocklines.MainFragment">
 
@@ -48,6 +48,26 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Licences"
+            android:textSize="20sp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:onClick="matchFragmentClick"
+        android:layout_margin="20dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <ImageView
+            android:layout_gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_main_fragment_match"/>
+
+        <TextView
+            android:layout_gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Résultat"
             android:textSize="20sp"/>
     </LinearLayout>
     

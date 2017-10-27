@@ -12,6 +12,11 @@ import com.example.flo.hocklines.R;
 import com.example.flo.hocklines.licence.LicenceContentValues;
 import com.example.flo.hocklines.licence.LicenceCursor;
 import com.example.flo.hocklines.licence.LicenceSelection;
+import com.example.flo.hocklines.match.MatchContentValues;
+import com.example.flo.hocklines.match.MatchCursor;
+import com.example.flo.hocklines.match.MatchSelection;
+
+import java.io.Writer;
 
 /**
  * Created by Flo on 06/10/2017.
@@ -39,6 +44,25 @@ public class UtilsFunction {
             return where;
         else
             return null;
+    }
+
+    public static MatchSelection getMatch(String date, String heure, Context c){
+        MatchSelection where = new MatchSelection();
+        where.date(date).and().heure(heure);
+        MatchCursor cursor = where.query(c);
+        if(cursor.moveToNext())
+            return where;
+        else
+            return null;
+    }
+
+    public static void updateMatch(String date, String heure, Context c, MatchContentValues values){
+        MatchSelection where = getMatch(date,heure,c);
+        if(where != null){
+            values.update(c,where);
+        }else{
+            values.insert(c);
+        }
     }
 
     public static boolean isLicenceExistInBDD(String identifiant, Context c){

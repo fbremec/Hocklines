@@ -1,6 +1,5 @@
 package com.example.flo.hocklines;
 
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -8,16 +7,12 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 
 import com.example.flo.hocklines.events.ConnectEvent;
 import com.example.flo.hocklines.events.DisconnectEvent;
-import com.example.flo.hocklines.service.HocklinesService;
+import com.example.flo.hocklines.service.LicenceService;
+import com.example.flo.hocklines.service.MatchService;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -44,21 +39,11 @@ public class MainFragment extends Fragment {
     private OnFragmentInteractionListener mListener;
 
     public MainFragment() {
-        EventBus.getDefault().register(this);
+        // EventBus.getDefault().register(this);
         // Required empty public constructor
     }
 
-    @Subscribe
-    public void onDisconnectEvent(DisconnectEvent event){
-        licenceLinear.setVisibility(View.GONE);
-    }
 
-    @Subscribe
-    public void onConnectEvent(ConnectEvent event){
-        licenceLinear.setVisibility(View.VISIBLE);
-        Intent intent = new Intent(getActivity(), HocklinesService.class);
-        getActivity().startService(intent);
-    }
 
     /**
      * Use this factory method to create a new instance of

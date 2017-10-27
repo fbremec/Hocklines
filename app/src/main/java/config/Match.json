@@ -1,0 +1,41 @@
+{
+  "documentation": "Result of match",
+  "fields": [
+    {
+      "documentation": "date",
+      "name": "date",
+      "type": "String",
+      "nullable": false
+    },
+    {
+      "documentation": "heure",
+      "name": "heure",
+      "type": "String",
+      "nullable": false
+    },
+    {
+      "documentation": "scoreAdversaire",
+      "name": "scoreAdversaire",
+      "type": "Integer",
+      "nullable": true
+    },
+    {
+      "documentation": "myScore",
+      "name": "myScore",
+      "type": "Integer",
+      "nullable": true
+    },
+    {
+      "documentation": "adversaire",
+      "name": "adversaire",
+      "type": "String",
+      "nullable": false
+    },
+    {
+      "documentation": "equipe",
+      "name": "equipe",
+      "type": "String",
+      "nullable": false
+    }
+  ]
+}

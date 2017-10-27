@@ -1,7 +1,6 @@
 package com.example.flo.hocklines;
 
 import android.app.ProgressDialog;
-import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -30,7 +29,6 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.example.flo.hocklines.events.CircleProgressEvent;
 import com.example.flo.hocklines.events.ConnectEvent;
 import com.example.flo.hocklines.events.DisconnectEvent;
@@ -38,14 +36,15 @@ import com.example.flo.hocklines.events.SearchVisibilityEvent;
 import com.example.flo.hocklines.hocklines_timer.fragment.HocklinesTimerFragment;
 import com.example.flo.hocklines.licences.events.SearchLicenceEvent;
 import com.example.flo.hocklines.licences.fragment.LicencesFragment;
+import com.example.flo.hocklines.match.fragment.MatchFragment;
 import com.example.flo.hocklines.service.Firebase.RealtimeInfoJoueurs;
-import com.example.flo.hocklines.service.HocklinesService;
+import com.example.flo.hocklines.service.LicenceService;
+import com.example.flo.hocklines.service.MatchService;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.auth.api.signin.GoogleSignInResult;
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.OptionalPendingResult;
 import com.google.android.gms.common.api.ResultCallback;
@@ -64,6 +63,7 @@ public class MainActivity extends AppCompatActivity
     public static final int FRAGMENT_TIMER = 0;
     private static final int FRAGMENT_MAIN = -1;
     private static final int FRAGMENT_LICENCES = 1;
+    private static final int FRAGMENT_RESULTAT = 2;
 
     private HocklinesTimerFragment hocklinesTimerFragment;
     private NavigationView navigationView;
@@ -85,7 +85,6 @@ public class MainActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -96,7 +95,7 @@ public class MainActivity extends AppCompatActivity
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
-//        Intent intent = new Intent(this, HocklinesService.class);
+//        Intent intent = new Intent(this, LicenceService.class);
 //        startService(intent);
 
         navigationView = (NavigationView) findViewById(R.id.nav_view);
@@ -123,7 +122,6 @@ public class MainActivity extends AppCompatActivity
                 .enableAutoManage(this /* FragmentActivity */, this /* OnConnectionFailedListener */)
                 .addApi(Auth.GOOGLE_SIGN_IN_API, gso)
                 .build();
-
 
 
 
@@ -296,11 +294,13 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
-        } else if(currentFragment == FRAGMENT_TIMER) {
+        }else if(currentFragment == FRAGMENT_TIMER) {
             Log.d("on back press", ":::::::::");
             saveBeforeBackPress();
             displayFragment(FRAGMENT_MAIN);
         }else if(currentFragment == FRAGMENT_LICENCES) {
+            displayFragment(FRAGMENT_MAIN);
+        }else if(currentFragment == FRAGMENT_RESULTAT){
             displayFragment(FRAGMENT_MAIN);
         }else if(currentFragment == FRAGMENT_MAIN){
             super.onBackPressed();
@@ -337,6 +337,15 @@ public class MainActivity extends AppCompatActivity
                         .commit();
                 currentFragment = FRAGMENT_LICENCES;
                 break;
+            case FRAGMENT_RESULTAT :
+                //navigationView.getMenu().getItem(FRAGMENT_RESULTAT).setChecked(true);
+                setTitle("Resultat " + equipe);
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.container, MatchFragment.newInstance("",""))
+                        .commit();
+                currentFragment = FRAGMENT_RESULTAT;
+                break;
+
             case FRAGMENT_MAIN:
                 //test pour premier affichage car current fragment = NO_FRAGMENT
                 if(currentFragment !=-1)
@@ -349,6 +358,22 @@ public class MainActivity extends AppCompatActivity
                 currentFragment = FRAGMENT_MAIN;
                 break;
         }
+    }
+
+    @Subscribe
+    public void onDisconnectEvent(DisconnectEvent event){
+        Intent intent = new Intent(this, LicenceService.class);
+        stopService(intent);
+    }
+
+    @Subscribe
+    public void onConnectEvent(ConnectEvent event){
+        Intent intent = new Intent(this, LicenceService.class);
+        startService(intent);
+
+        intent = new Intent(this, MatchService.class);
+        startService(intent);
+
     }
 
     class SearchEditTextWatcher implements TextWatcher {
@@ -522,6 +547,6 @@ public class MainActivity extends AppCompatActivity
         displayFragment(FRAGMENT_LICENCES);
     }
 
-
+    public void matchFragmentClick(View v){ displayFragment(FRAGMENT_RESULTAT);    }
 
 }

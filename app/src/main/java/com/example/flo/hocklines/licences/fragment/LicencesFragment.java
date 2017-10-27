@@ -27,6 +27,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import java.io.File;
 import java.util.HashMap;
+import java.util.zip.Inflater;
 
 
 public class LicencesFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor>{
@@ -88,7 +89,7 @@ public class LicencesFragment extends Fragment implements LoaderManager.LoaderCa
             v.setLayoutParams(new GridLayout.LayoutParams());
             v.getLayoutParams().width = GridLayout.LayoutParams.MATCH_PARENT;
             v.getLayoutParams().height = 40;
-
+            Inflater inf = new Inflater(false);
             gridLayout.addView(t);
             gridLayout.addView(i);
             gridLayout.addView(v);
@@ -102,6 +103,7 @@ public class LicencesFragment extends Fragment implements LoaderManager.LoaderCa
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
         View rootView = inflater.inflate(R.layout.fragment_licences, container, false);
         EventBus.getDefault().post(new SearchVisibilityEvent(View.VISIBLE));
         getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
@@ -195,8 +197,8 @@ public class LicencesFragment extends Fragment implements LoaderManager.LoaderCa
                 appendLicence(bean);
             }
         }
-        if(!data.moveToFirst())
-            Toast.makeText(getContext(),"impossible de télécharger les données de l'équipe "+MainActivity.equipe,Toast.LENGTH_SHORT).show();
+//        if(!data.moveToFirst())
+//            Toast.makeText(getContext(),"impossible de télécharger les données de l'équipe "+MainActivity.equipe,Toast.LENGTH_SHORT).show();
 
 
     }
